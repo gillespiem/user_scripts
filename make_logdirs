@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+"""
+    This is a script to create daily logdirs for a user.
+
+    I typically use ~/logs/year-date-month as a way to organize my daily
+    work into easy to find directories. I also add ~/today and ~/yesterday
+    symlinks to make things easier.
+
+    This should be added to a users nightly crontab
+
+    @author: Matthew Gillespie
+"""
+import os
+import getpass
+from datetime import datetime, timedelta
+import logging
+
+#Adjust LogLevel below for debugging:
+logger = logging.getLogger("make_logdirs")
+logger.setLevel(logging.WARN)
+
+ch = logging.StreamHandler()
+logger.addHandler(ch)
+
+def make_symlink( path, symlink):
+    try:
+        logger.info("Making symlink %s -> %s " % (symlink, path))
+        os.symlink(path, symlink)
+    except OSError:
+        logger.warn("Directory or symlink may already exist")
+        return 1
+
+    return 0
+
+def clear_symlink( symlink ):
+    try:
+        logger.info("Removing symlink %s " % symlink)
+        os.unlink(symlink)
+    except OSError:
+        logger.warn("Unable to remove symlink")
+        return 1
+    return 0
+
+
+def make_logdir( path ):
+    try:
+        logger.info("Making log directory %s " % path)
+        os.mkdir(path)
+    except OSError:
+        logger.warn("Directory may already exist")
+        return 1
+    return 0
+
+
+
+
+username = getpass.getuser()
+base_logdir = "/home/%s/logs" % username
+logdir_format_string = "%s/%s" % (base_logdir, "%d-%d-%d")
+
+today_symlink = "/home/%s/today" % username 
+yesterday_symlink = "/home/%s/yesterday" % username 
+
+today_logdir_symlink = "%s/today"
+yesterday_logdir_symlink = "%s/yesterday" % base_logdir
+
+today = datetime.now()
+yesterday = today - timedelta(days=1)
+tomorrow = today + timedelta(days=1)
+
+today_logdir = logdir_format_string  %  (today.year, today.month, today.day)
+yesterday_logdir = logdir_format_string %  (yesterday.year, yesterday.month, yesterday.day)
+tomorrow_logdir = logdir_format_string % (tomorrow.year, tomorrow.month, tomorrow.day)
+
+#Create the ~/logs directory if it doesn't exist for some reason
+make_logdir(base_logdir)
+
+#Remove symlinks first
+clear_symlink( today_symlink )
+clear_symlink( today_logdir_symlink )
+clear_symlink( yesterday_symlink )
+clear_symlink( yesterday_logdir_symlink )
+
+#Create the new logdir
+make_logdir( today_logdir )
+
+#Create the new symlinks
+make_symlink( today_logdir, today_symlink )
+make_symlink( yesterday_logdir, yesterday_symlink )
+
+#Finally,  we need a symlink that goes forward (tomorrow) and backwards (yesterday)
+backward_symlink = "%s/yesterday" % today_logdir
+forward_symlink = "%s/tomorrow" % today_logdir
+
+make_symlink( yesterday_logdir, backward_symlink )
+make_symlink( tomorrow_logdir, forward_symlink )
