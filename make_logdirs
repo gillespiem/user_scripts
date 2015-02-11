@@ -2,7 +2,7 @@
 """
     This is a script to create daily logdirs for a user.
 
-    I typically use ~/logs/year-date-month as a way to organize my daily
+    I typically use ~/logs/year-month-day as a way to organize my daily
     work into easy to find directories. I also add ~/today and ~/yesterday
     symlinks to make things easier.
 
