@@ -56,7 +56,7 @@ def make_logdir( path ):
 
 username = getpass.getuser()
 base_logdir = "/home/%s/logs" % username
-logdir_format_string = "%s/%s" % (base_logdir, "%d-%d-%d")
+logdir_format_string = "%s/%s" % (base_logdir, "%04d-%02d-%02d")
 
 today_symlink = "/home/%s/today" % username 
 yesterday_symlink = "/home/%s/yesterday" % username 
